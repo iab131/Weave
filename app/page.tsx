@@ -32,25 +32,20 @@ export default function Home() {
   const getRandomPosition = () => {
     const centerX = window.innerWidth / 2;
     const centerY = window.innerHeight / 2;
-    const imageWidth = 280;
-    const imageHeight = 138;
     let x, y;
-
     do {
       x = Math.floor(Math.random() * (window.innerWidth - 320));
       y = Math.floor(Math.random() * (window.innerHeight - 200));
     } while (
-      x > centerX - imageWidth / 2 - 160 &&
-      x < centerX + imageWidth / 2 &&
-      y > centerY - imageHeight / 2 - 80 &&
-      y < centerY + imageHeight / 2
+      x > centerX - 140 && x < centerX + 140 && y > centerY - 70 && y < centerY + 70
     );
-
     return { x, y };
   };
 
-  const handleSave = () => {
-    const { firstName, lastName } = formData;
+  const handleSave = async () => {
+    const { firstName, lastName, handle } = formData;
+    
+    // Check for required fields
     if (!firstName || !lastName) {
       setErrors({
         firstName: !firstName ? "First Name is required" : "",
@@ -58,9 +53,29 @@ export default function Home() {
       });
       return;
     }
-
+  
+    // If the handle is available, create the LinkedIn profile URL
+    let profileLink = '';
+    if (handle) {
+      profileLink = `https://www.linkedin.com/in/${handle}`;
+    } else {
+      // If there's no handle, you can return a message or use the name for search
+      profileLink = `https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(firstName + " " + lastName)}`;
+    }
+  
+    // Log and update state with new profile data
     const position = getRandomPosition();
-    setSavedCards((prev) => [...prev, { ...formData, position }]);
+    setSavedCards((prev) => [
+      ...prev,
+      { ...formData, position, profileLink }
+    ]);
+  
+    // Optionally, open the LinkedIn profile page in a new tab if a direct link exists
+    if (profileLink && profileLink !== "Not found") {
+      window.open(profileLink, "_blank");
+    }
+  
+    // Close the form and reset form data
     setShowCard(false);
     setFormData({
       firstName: "",
@@ -71,6 +86,8 @@ export default function Home() {
       profilePicture: null,
     });
   };
+  
+  
 
   const handleCancel = () => {
     setShowCard(false);
@@ -173,6 +190,9 @@ export default function Home() {
           <p><strong>Company:</strong> {card.company}</p>
           <p><strong>Handle:</strong> {card.handle}</p>
           <p><strong>Comments:</strong> {card.comments}</p>
+          {card.profileLink && (
+          <p><strong>Profile:</strong> <a href={card.profileLink} target="_blank">{card.profileLink}</a></p>
+          )}  
           {card.profilePicture && (
             <p><strong>Profile Picture:</strong> {card.profilePicture.name}</p>
           )}
